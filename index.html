@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2b506e" />
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <link href="https://cdn.jsdelivr.net/gh/halfmoonui/halfmoon@latest/css/halfmoon.min.css" rel="stylesheet" />
+    <script src="https://kit.fontawesome.com/bf2610f0a2.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+    <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+    <script disable-devtool-auto src='https://cdn.jsdelivr.net/npm/disable-devtool@latest'></script>
+    <title>Tushar Cricket </title>
+    <link rel="icon" href="icon.png" />
+    <style>
+        @font-face {
+            font-family: 'INDIA2023 Bold';
+            font-style: normal;
+            font-weight: normal;
+            src: local('INDIA2023 Bold'), url('INDIA2023bold.woff') format('woff');
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #000000, #000000);
+            color: #fff;
+            font-family: 'INDIA2023 Bold', sans-serif;
+        }
+
+        #homepageContent {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        #homepageContent h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #ffda44;
+        }
+
+        #homepageContent p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        #homepageContent a {
+            color: #ffda44;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        #homepageContent a:hover {
+            text-decoration: underline;
+        }
+
+        .plyr {
+            width: 100vw;
+            height: 100vh;
+            margin: 0 auto;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .col-md-6 {
+            flex: 1;
+            color: aliceblue;
+        }
+
+        .custom-select {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            background-color: #b5ebff;
+            border: 1px solid #dcdcdc;
+            border-radius: 4px;
+        }
+
+        .custom-live {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: rgb(183, 0, 0);
+        }
+
+        .custom-select select {
+            padding: 5px;
+            border: none;
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="homepageContent">
+        <h1><strong>Welcome to Star Cricket 🏏</strong></h1>
+        <p>Enjoy live streaming of your favorite sports matches here!</p>
+        <p>Join our <a href="https://telegram.me/tushar_Stream" target="_blank">Telegram Channel</a> for updates!</p>
+    </div>
+
+
+    <video id="player" controls preload="metadata" class="plyr" style="display: none;" crossorigin="anonymous">
+        <source id="videoSource" crossorigin="anonymous" />
+    </video>
+    <div class="custom-live">
+        <h4>Live</h4>
+    </div>
+
+    <script>
+        if (confirm("Join Our Telegram Channel @Tushar_Stream")) {
+            window.location.href = "https://telegram.me/tushar_Stream";
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+
+const video = document.querySelector("video");
+            const sourceElement = document.querySelector("#videoSource");
+            const urlParams = new URLSearchParams(window.location.search);
+            const homepageContent = document.getElementById("homepageContent");
+
+            function getVideoUrl() {
+                const path = window.location.pathname;
+                let videoSrc = "";
+                let videoType = "";
+
+                if (path === "/IndvsBan") {
+                    location.replace("./IndvsBan.html")
+                } else if (path === "/Jv") {
+                    videoSrc = "https://prod-ent-live-gm.jiocinema.com/bpk-tv/JV_SportsHD15_DIG_MOB/Fallback/index.m3u8";
+                    videoType = "hls";
+                } else if (path === "/live/") {
+                    videoSrc = urlParams.get("play");
+                    videoType = "hls";
+                }
+
+                return { videoSrc, videoType };
+            }
+
+            const { videoSrc, videoType } = getVideoUrl();
+
+            if (!videoSrc && window.location.pathname === "/") {
+                homepageContent.style.display = "block";
+                video.style.display = "none";
+            } else if (videoSrc) {
+                video.style.display = "block";
+                homepageContent.style.display = "none";
+                const playerOptions = {
+                    controls: [
+                        'play-large',
+                        'play',
+                        'mute',
+                        'volume',
+                        'settings',
+                        'pip',
+                        'airplay',
+                        'fullscreen',
+                    ],
+                    autoplay: true,
+                    disableContextMenu: true,
+                };
+
+                if (videoType === "hls") {
+                    sourceElement.src = videoSrc;
+                    if (Hls.isSupported()) {
+                        const hls = new Hls({ maxMaxBufferLength: 100 });
+                        hls.loadSource(videoSrc);
+                        hls.attachMedia(video);
+                        hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+                            const availableQualities = hls.levels.map(level => level.height);
+                            playerOptions.quality = {
+                                default: availableQualities[0],
+                                options: availableQualities,
+                                forced: true,
+                                onChange: quality => {
+                                    hls.levels.forEach((level, index) => {
+                                        if (level.height === quality) hls.currentLevel = index;
+                                    });
+                                }
+                            };
+                            new Plyr(video, playerOptions);
+                        });
+                        window.hls = hls;
+                    } else {
+                        new Plyr(video, playerOptions);
+                    }
+                }
+            } else {
+                alert("No video URL specified.");
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.oncontextmenu = null;
+        document.onselectstart = null;
+        document.ondragstart = null;
+        document.onmousedown = null;
+        document.body.oncontextmenu = null;
+        document.body.onselectstart = null;
+        document.body.ondragstart = null;
+        document.body.onmousedown = null;
+        document.body.oncut = null;
+        document.body.oncopy = null;
+        document.body.onpaste = null;
+        document.addEventListener('keydown', event => {
+
+if (event.keyCode === 123 || (event.ctrlKey && event.shiftKey && event.keyCode === 73)) {
+                event.preventDefault();
+            }
+        });
+    </script>
+<!-- Cloudflare Pages Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "27e9e91f037941c08c4e48a81ceec163"}'></script><!-- Cloudflare Pages Analytics --></body>
+
+</html>i
